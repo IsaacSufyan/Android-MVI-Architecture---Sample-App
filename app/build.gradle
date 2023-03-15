@@ -1,0 +1,229 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+ext.screenshotsEnabled = gradle.startParameter.taskNames.size() > 0 && gradle.startParameter.taskNames.get(0) == "connectedDebugAndroidTest"
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$versions.kotlin"
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-parcelize'
+apply plugin: "androidx.navigation.safeargs.kotlin"
+apply plugin: "kotlin-allopen"
+apply plugin: 'kotlin-kapt'
+
+def appId = "com.isaacsufyan.mvi"
+
+android {
+    compileSdkVersion 33
+
+    defaultConfig {
+        applicationId appId
+        minSdkVersion 24
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+        testInstrumentationRunner "com.isaacsufyan.mvi.utils.ScreenshotsRunner"
+        if (project.ext.screenshotsEnabled == true) {
+            testInstrumentationRunnerArguments screenshotsEnabled: 'true'
+        }
+
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    testOptions {
+        if (project.ext.screenshotsEnabled == true) {
+            if (!isIdeBuild) {
+                execution 'ANDROIDX_TEST_ORCHESTRATOR'
+            }
+        }
+        animationsDisabled = true
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    adbOptions {
+        installOptions '-g', '-r'
+    }
+
+    buildFeatures {
+        dataBinding true
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.2"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        freeCompilerArgs += [
+                "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi"]
+    }
+
+    packagingOptions {
+        exclude "**/attach_hotspot_windows.dll"
+        exclude "META-INF/licenses/**"
+        exclude "META-INF/AL2.0"
+        exclude "META-INF/LGPL2.1"
+    }
+}
+
+allOpen {
+    annotation("com.isaacsufyan.mvi.utils.AllOpen")
+}
+
+tasks.withType(KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    implementation(project(":domain"))
+    implementation(project(":storage"))
+    implementation(project(":utils"))
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$versions.kotlin"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    implementation deps.lifecycle.runtime
+    implementation deps.lifecycle.livedata_ktx
+    implementation deps.lifecycle.extensions
+    implementation deps.lifecycle.viewmodel_ktx
+
+    testImplementation 'junit:junit:4.13.2'
+
+    implementation "androidx.fragment:fragment-ktx:1.5.5"
+
+    implementation "androidx.navigation:navigation-runtime-ktx:2.5.3"
+    implementation "androidx.navigation:navigation-fragment-ktx:2.5.3"
+    implementation "androidx.navigation:navigation-ui-ktx:2.5.3"
+    implementation "androidx.navigation:navigation-compose:2.6.0-alpha07"
+
+    def koin_version = "3.1.0"
+    implementation "io.insert-koin:koin-core:$koin_version"
+    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+
+    // Testing
+    testImplementation "com.google.truth:truth:1.1.3"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0"
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4'
+    testImplementation 'androidx.arch.core:core-testing:2.2.0'
+
+    // AndroidTests
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0") {
+        exclude group: 'org.mockito'
+    }
+    androidTestImplementation "com.google.truth:truth:1.1.3"
+
+    androidTestImplementation 'org.mockito:mockito-android:3.8.0'
+    androidTestUtil 'androidx.test:orchestrator:1.4.2'
+    androidTestImplementation 'androidx.test:core:1.5.0'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation "com.github.hadilq.liveevent:liveevent:1.2.0"
+
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation 'com.airbnb.android:lottie:5.2.0'
+
+    def paging_version = "3.1.1"
+    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
+
+    implementation 'androidx.compose.ui:ui:1.3.3'
+    implementation 'androidx.compose.ui:ui-tooling:1.3.3'
+    implementation 'androidx.compose.foundation:foundation:1.3.1'
+    implementation 'androidx.compose.material:material:1.3.1'
+    implementation 'androidx.compose.material:material-icons-core:1.3.1'
+    implementation 'androidx.compose.material:material-icons-extended:1.3.1'
+    implementation 'androidx.paging:paging-compose:1.0.0-alpha18'
+    implementation 'androidx.activity:activity-compose:1.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0'
+    implementation 'androidx.compose.runtime:runtime-livedata:1.3.3'
+
+    implementation "androidx.compose.compiler:compiler:1.4.3"
+
+    def accompanist_version = "0.12.0"
+    implementation "com.google.accompanist:accompanist-swiperefresh:$accompanist_version"
+    implementation "com.google.accompanist:accompanist-insets:$accompanist_version"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
+
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.3.3")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.3.3")
+
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+}
+
+def projectScreenshotsDirectory = "$projectDir/screenshots"
+def deviceScreenshotsDirectory = '/sdcard/Pictures/' + appId + '/debug/screenshots'
+
+def clearScreenshotsTask = task('clearScreenshots', type: Exec) {
+    executable "${android.getAdbExe().toString()}"
+    args 'shell', 'rm', '-r', deviceScreenshotsDirectory
+}
+
+def createScreenshotDirectoryTask = task('createScreenshotDirectory', type: Exec, group: 'reporting') {
+    executable "${android.getAdbExe().toString()}"
+    args 'shell', 'mkdir', '-p', deviceScreenshotsDirectory
+}
+
+def fetchScreenshotsTask = task('fetchScreenshots', type: Exec, group: 'reporting') {
+    executable "${android.getAdbExe().toString()}"
+    args 'pull', deviceScreenshotsDirectory + '/.', projectScreenshotsDirectory
+    finalizedBy {
+        clearScreenshotsTask
+    }
+
+    dependsOn {
+        createScreenshotDirectoryTask
+    }
+
+    doFirst {
+        new File(projectScreenshotsDirectory).mkdirs()
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'connectedDebugAndroidTest') {
+        task.finalizedBy {
+            fetchScreenshotsTask
+        }
+    }
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel target="1.8">
+      <module name="Android_MVI_Architecture_-_Sample_App.app" target="17" />
+      <module name="Android_MVI_Architecture_-_Sample_App.storage" target="17" />
+      <module name="AndroidMVIExample.app" target="17" />
+      <module name="AndroidMVIExample.storage" target="17" />
+      <module name="mvi.app" target="17" />
+      <module name="mvi.storage" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
